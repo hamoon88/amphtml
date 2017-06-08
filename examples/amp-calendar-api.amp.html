@@ -1,0 +1,156 @@
+<!doctype html>
+<html ⚡>
+<head>
+  <meta charset="utf-8">
+  <title>AMP Calendar</title>
+  <link rel="canonical" href="amps.html">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
+  <style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>    
+  <style amp-custom>
+      * {box-sizing:border-box;}
+      ul {list-style-type: none;}
+      body {font-family: Verdana,sans-serif;}
+
+      .center {text-align:center}
+      .font18 {font-size:18px}
+      .month {
+          padding: 70px 25px;
+          width: 100%;
+          background: #1abc9c;
+      }
+
+      .month ul {
+          margin: 0;
+          padding: 0;
+      }
+
+      .month ul li {
+          color: white;
+          font-size: 20px;
+          text-transform: uppercase;
+          letter-spacing: 3px;
+      }
+
+      .month .prev {
+          float: left;
+          padding-top: 10px;
+      }
+
+      .month .next {
+          float: right;
+          padding-top: 10px;
+      }
+
+      .weekdays {
+          margin: 0;
+          padding: 10px 0;
+          background-color: #ddd;
+      }
+
+      .weekdays li {
+          display: inline-block;
+          width: 13.6%;
+          color: #666;
+          text-align: center;
+      }
+
+      .days {
+          padding: 10px 0;
+          background: #eee;
+          margin: 0;
+      }
+
+      .days li {
+          list-style-type: none;
+          display: inline-block;
+          width: 13.6%;
+          text-align: center;
+          margin-bottom: 5px;
+          font-size:12px;
+          color: #777;
+      }
+
+      .days li .active {
+          padding: 5px;
+          background: #1abc9c;
+          color: white
+      }
+
+      /* Add media queries for smaller screens */
+      @media screen and (max-width:720px) {
+          .weekdays li, .days li {width: 13.1%;}
+      }
+
+      @media screen and (max-width: 420px) {
+          .weekdays li, .days li {width: 12.5%;}
+          .days li .active {padding: 2px;}
+      }
+
+      @media screen and (max-width: 290px) {
+          .weekdays li, .days li {width: 12.2%;}
+      }
+  </style>
+  <script async custom-element="amp-calendar-api" src="https://cdn.ampproject.org/v0/amp-calendar-api-0.1.js"></script>
+  <script async src="https://cdn.ampproject.org/v0.js"></script>
+</head>
+  <body>
+    <div class="month">      
+      <ul>
+        <li class="prev">&#10094;</li>
+        <li class="next">&#10095;</li>
+        <li class="center">
+          June<br>
+          <span class="font18">2017</span>
+        </li>
+      </ul>
+    </div>
+
+    <ul class="weekdays">
+      <li>Mo</li>
+      <li>Tu</li>
+      <li>We</li>
+      <li>Th</li>
+      <li>Fr</li>
+      <li>Sa</li>
+      <li>Su</li>
+    </ul>
+    <ul class="days">
+      <li></li>
+      <li></li>
+      <li></li> 
+      <li><input type="radio" name="day" on="change:api.reload({2017-06-01})">1</li>
+      <li><input type="radio" name="day" on="change:api.reload({2017-06-02})">2</li>
+      <li><input type="radio" name="day" on="change:api.reload({2017-06-03})">3</li>
+      <li><input type="radio" name="day" on="change:api.reload({2017-06-04})">4</li>
+      <li><input type="radio" name="day" on="change:api.reload({2017-06-05})">5</li>
+      <li><input type="radio" name="day" on="change:api.reload({2017-06-06})">6</li>
+      <li><input type="radio" name="day" on="change:api.reload({2017-06-07})">7</li>
+      <li><input type="radio" name="day" on="change:api.reload({2017-06-08})">8</li>
+      <li><input type="radio" name="day" on="change:api.reload({2017-06-09})">9</li>
+      <li><input type="radio" name="day" on="change:api.reload({2017-06-10})">10</li>
+      <li><input type="radio" name="day" on="change:api.reload({2017-06-11})">11</li>
+      <li><input type="radio" name="day" on="change:api.reload({2017-06-12})">12</li>
+      <li><input type="radio" name="day" on="change:api.reload({2017-06-13})">13</li>
+      <li><input type="radio" name="day" on="change:api.reload({2017-06-14})">14</li>
+      <li><input type="radio" name="day" on="change:api.reload({2017-06-15})">15</li>
+      <li><input type="radio" name="day" on="change:api.reload({2017-06-16})">16</li>
+      <li><input type="radio" name="day" on="change:api.reload({2017-06-17})">17</li>
+      <li><input type="radio" name="day" on="change:api.reload({2017-06-18})">18</li>
+      <li><input type="radio" name="day" on="change:api.reload({2017-06-19})">19</li>
+      <li><input type="radio" name="day" on="change:api.reload({2017-06-20})">20</li>
+      <li><input type="radio" name="day" on="change:api.reload({2017-06-21})">21</li>
+      <li><input type="radio" name="day" on="change:api.reload({2017-06-22})">22</li>
+      <li><input type="radio" name="day" on="change:api.reload({2017-06-23})">23</li>
+      <li><input type="radio" name="day" on="change:api.reload({2017-06-24})">24</li>
+      <li><input type="radio" name="day" on="change:api.reload({2017-06-25})">25</li>
+      <li><input type="radio" name="day" on="change:api.reload({2017-06-26})">26</li>
+      <li><input type="radio" name="day" on="change:api.reload({2017-06-27})">27</li>
+      <li><input type="radio" name="day" on="change:api.reload({2017-06-28})">28</li>
+      <li><input type="radio" name="day" on="change:api.reload({2017-06-29})">29</li>
+      <li><input type="radio" name="day" on="change:api.reload({2017-06-30})">30</li>
+     </ul>
+    <amp-calendar-api width="200" id="api" layout="responsive"></amp-calendar-api>
+    <p [text]="chosenDay"></p>
+    </form>
+  </body>
+</html>
