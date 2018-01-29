@@ -68,6 +68,13 @@ export class StandardActions {
     /** @const @private {!./viewport/viewport-impl.Viewport} */
     this.viewport_ = Services.viewportForDoc(ampdoc);
 
+    const meta =
+        window.document.head.querySelector('meta[name="amp-action-whitelist"]');
+    if (meta) {
+      /** @const @private {Array<string>} */
+      this.ampActionWhitelist_ = meta.getAttribute('content').split(',');
+    }
+
     this.installActions_(this.actions_);
   }
 
@@ -101,10 +108,14 @@ export class StandardActions {
    * @param {number=} opt_actionIndex
    * @param {!Array<!./action-impl.ActionInfoDef>=} opt_actionInfos
    * @return {?Promise}
-   * @throws {Error} If action is not recognized.
+   * @throws {Error} If action is not recognized or is not whitelisted.
    */
   handleAmpTarget(invocation, opt_actionIndex, opt_actionInfos) {
     const method = invocation.method;
+    if (this.ampActionWhitelist_ &&
+      this.ampActionWhitelist_.indexOf(method) == -1) {
+      throw user().createError('AMP action', method, 'is not whitelisted');
+    }
     switch (method) {
       case 'pushState':
       case 'setState':
