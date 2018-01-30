@@ -381,11 +381,11 @@ describes.sandboxed('StandardActions', {}, () => {
       expect(printStub).to.not.be.called;
     });
 
-    it('should implement psuhState when whitelisted', () => {
+    it('should implement pushState when whitelisted', () => {
       window.document.head.appendChild(
           createElementWithAttributes(window.document, 'meta', {
             name: 'amp-action-whitelist',
-            content: 'pushState',
+            content: 'setState, pushState',
           }));
 
       ampdoc = new AmpDocSingle(window);

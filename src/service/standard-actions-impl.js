@@ -72,7 +72,8 @@ export class StandardActions {
         window.document.head.querySelector('meta[name="amp-action-whitelist"]');
     if (meta) {
       /** @const @private {Array<string>} */
-      this.ampActionWhitelist_ = meta.getAttribute('content').split(',');
+      this.ampActionWhitelist_ = meta.getAttribute('content').split(',')
+          .map(action => {return action.trim();});
     }
 
     this.installActions_(this.actions_);
