@@ -68,8 +68,11 @@ export class StandardActions {
     /** @const @private {!./viewport/viewport-impl.Viewport} */
     this.viewport_ = Services.viewportForDoc(ampdoc);
 
+    // A meta[name="amp-action-whitelist"] tag, if present, contains, 
+    // in its content attribute, a whitelist of actions on the special AMP target. 
     const meta =
         window.document.head.querySelector('meta[name="amp-action-whitelist"]');
+    // Cache the whitelist of allowed AMP actions (if provided).
     if (meta) {
       /** @const @private {Array<string>} */
       this.ampActionWhitelist_ = meta.getAttribute('content').split(',')
