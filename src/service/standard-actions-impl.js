@@ -71,12 +71,12 @@ export class StandardActions {
     // A meta[name="amp-action-whitelist"] tag, if present, contains, 
     // in its content attribute, a whitelist of actions on the special AMP target. 
     const meta =
-        window.document.head.querySelector('meta[name="amp-action-whitelist"]');
+        this.ampdoc.getRootNode().head.querySelector('meta[name="amp-action-whitelist"]');
     // Cache the whitelist of allowed AMP actions (if provided).
     if (meta) {
-      /** @const @private {Array<string>} */
+      /** @const @private {!Array<string>} */
       this.ampActionWhitelist_ = meta.getAttribute('content').split(',')
-          .map(action => {return action.trim();});
+          .map(action => action.trim());
     }
 
     this.installActions_(this.actions_);
@@ -117,7 +117,7 @@ export class StandardActions {
   handleAmpTarget(invocation, opt_actionIndex, opt_actionInfos) {
     const method = invocation.method;
     if (this.ampActionWhitelist_ &&
-      this.ampActionWhitelist_.indexOf(method) == -1) {
+      !this.ampActionWhitelist_.includes(method)) {
       throw user().createError('AMP action', method, 'is not whitelisted');
     }
     switch (method) {

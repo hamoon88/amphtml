@@ -361,7 +361,6 @@ describes.sandboxed('StandardActions', {}, () => {
             content: 'pushState,setState',
           }));
 
-      ampdoc = new AmpDocSingle(window);
       standardActions = new StandardActions(ampdoc);
 
       const windowApi = {
@@ -377,7 +376,7 @@ describes.sandboxed('StandardActions', {}, () => {
           },
         },
       };
-      expect(() => {standardActions.handleAmpTarget(invocation);}).to.throw();
+      expect(() => standardActions.handleAmpTarget(invocation)).to.throw();
       expect(printStub).to.not.be.called;
     });
 
@@ -388,7 +387,6 @@ describes.sandboxed('StandardActions', {}, () => {
             content: 'setState, pushState',
           }));
 
-      ampdoc = new AmpDocSingle(window);
       standardActions = new StandardActions(ampdoc);
 
       const pushStateWithExpression = sandbox.stub();
