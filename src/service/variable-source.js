@@ -172,9 +172,15 @@ export class VariableSource {
     dev().assert(varName.indexOf('RETURN') == -1);
     if (this.ampVariableSubstitutionWhitelist_ &&
       !this.ampVariableSubstitutionWhitelist_.includes(varName)) {
+<<<<<<< HEAD
       return this;
     }
 
+=======
+      this.replacements_.delete(varName);
+      return this;
+    }
+>>>>>>> the code for whitelist of variables in url substitution. The code does not contain functional testing
     this.replacements_[varName] =
         this.replacements_[varName] || {sync: undefined, async: undefined};
     this.replacements_[varName].sync = syncResolver;
@@ -197,6 +203,10 @@ export class VariableSource {
     dev().assert(varName.indexOf('RETURN') == -1);
     if (this.ampVariableSubstitutionWhitelist_ &&
       !this.ampVariableSubstitutionWhitelist_.includes(varName)) {
+<<<<<<< HEAD
+=======
+      this.replacements_.delete(varName);
+>>>>>>> the code for whitelist of variables in url substitution. The code does not contain functional testing
       return this;
     }
     this.replacements_[varName] =
