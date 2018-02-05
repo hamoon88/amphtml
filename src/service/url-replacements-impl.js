@@ -71,6 +71,7 @@ export class GlobalVariableSource extends VariableSource {
 
   constructor(ampdoc) {
     super(ampdoc);
+<<<<<<< HEAD
 
     // A meta[name="amp-action-whitelist"] tag, if present, contains,
     // in its content attribute, a whitelist of actions on the special AMP target.
@@ -87,6 +88,8 @@ export class GlobalVariableSource extends VariableSource {
               .map(action => action.trim());
       }
     }
+=======
+>>>>>>> the code for whitelist of variables in url substitution. The code does not contain functional testing
 
     /**
      * @private
