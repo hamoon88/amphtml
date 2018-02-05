@@ -121,6 +121,9 @@ export class VariableSource {
 
     /** @private {boolean} */
     this.initialized_ = false;
+
+    /** @const @private {!Array<string>|undefined} */
+    this.ampVariableSubstitutionWhitelist_ = undefined;
   }
 
   /**
@@ -164,6 +167,11 @@ export class VariableSource {
    */
   set(varName, syncResolver) {
     dev().assert(varName.indexOf('RETURN') == -1);
+    if (this.ampVariableSubstitutionWhitelist_ &&
+      !this.ampVariableSubstitutionWhitelist_.includes(varName)) {
+      this.replacements_.delete(varName);
+      return this;
+    }
     this.replacements_[varName] =
         this.replacements_[varName] || {sync: undefined, async: undefined};
     this.replacements_[varName].sync = syncResolver;
@@ -184,6 +192,11 @@ export class VariableSource {
    */
   setAsync(varName, asyncResolver) {
     dev().assert(varName.indexOf('RETURN') == -1);
+    if (this.ampVariableSubstitutionWhitelist_ &&
+      !this.ampVariableSubstitutionWhitelist_.includes(varName)) {
+      this.replacements_.delete(varName);
+      return this;
+    }
     this.replacements_[varName] =
         this.replacements_[varName] || {sync: undefined, async: undefined};
     this.replacements_[varName].async = asyncResolver;
