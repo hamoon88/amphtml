@@ -109,7 +109,10 @@ export function getNavigationData(win, attribute) {
  * and override initialize() to add more supported variables.
  */
 export class VariableSource {
-  constructor() {
+  constructor(ampdoc) {
+    /** @const {!./ampdoc-impl.AmpDoc} */
+    this.ampdoc = ampdoc;
+
     /** @private {!RegExp|undefined} */
     this.replacementExpr_ = undefined;
 
@@ -122,8 +125,8 @@ export class VariableSource {
     /** @private {boolean} */
     this.initialized_ = false;
 
-    /** @const @private {!Array<string>|undefined} */
-    this.ampVariableSubstitutionWhitelist_ = undefined;
+    /** @const @private {?Array<string>} */
+    this.ampVariableSubstitutionWhitelist_ = this.createWhitelist_();
   }
 
   /**
@@ -280,5 +283,31 @@ export class VariableSource {
       regexStr += '(?:\\(((?:\\s*[0-9a-zA-Z-_.]*\\s*(?=,|\\)),?)*)\\s*\\))?';
     }
     return new RegExp(regexStr, 'g');
+  }
+
+  /**
+   * @return {?Array<string>} the whitelist of allowed AMP variables
+   * (if provided in a meta tag).
+   * @private
+   */
+  createWhitelist_() {
+    if(!this.ampdoc){
+      return null;
+    }
+
+    const head = this.ampdoc.getRootNode().head;
+    if (head) {
+      // A meta[name="amp-variable-substitution-whitelist"] tag, if present, 
+      // contains, in its content attribute, a whitelist of variable
+      // substitution.
+      const meta =
+        head.querySelector('meta[name="amp-variable-substitution-whitelist"]');
+
+      if (meta) {
+        return meta.getAttribute('content').split(',')
+            .map(variable => variable.trim());
+      }
+    }
+    return null;
   }
 }

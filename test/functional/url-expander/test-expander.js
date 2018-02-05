@@ -98,13 +98,13 @@ describes.realWin('Expander', {
       ABCD: () => 'four',
     };
     beforeEach(() => {
-      window.document.head.appendChild(
-          createElementWithAttributes(window.document, 'meta', {
-            name: 'amp-variable-substitution-whitelist',
-            content: 'ABC,ABCD,CANONICAL',
-          }));
-      const ampdoc = new AmpDocSingle(window);
-      variableSource = new GlobalVariableSource(ampdoc);
+      const fakeMeta = {
+        getAttribute: () => 'ABC,ABCD,CANONICAL',
+      };
+      sandbox.stub(env.win.document.head,
+          'querySelector').callsFake(() => fakeMeta);
+      
+      variableSource = new GlobalVariableSource(env.ampdoc);
       expander = new Expander(variableSource);
     });
 
