@@ -76,7 +76,7 @@ export class GlobalVariableSource extends VariableSource {
 
     // A meta[name="amp-action-whitelist"] tag, if present, contains,
     // in its content attribute, a whitelist of actions on the special AMP target.
-    if (this.ampVariableSubstitutionWhitelist_ === undefined 
+    if (this.ampVariableSubstitutionWhitelist_ === undefined
       && this.ampdoc.getRootNode() && this.ampdoc.getRootNode().head) {
       const meta =
         this.ampdoc.getRootNode().head
@@ -84,10 +84,11 @@ export class GlobalVariableSource extends VariableSource {
 
       // Cache the whitelist of allowed AMP actions (if provided).
       if (meta) {
-        this.ampVariableSubstitutionWhitelist_ = meta.getAttribute('content').split(',')
-            .map(action => action.trim());
+        this.ampVariableSubstitutionWhitelist_ =
+          meta.getAttribute('content').split(',')
+              .map(action => action.trim());
       }
-    }    
+    }
 
     /**
      * @private

@@ -169,9 +169,9 @@ export class VariableSource {
     dev().assert(varName.indexOf('RETURN') == -1);
     if (this.ampVariableSubstitutionWhitelist_ &&
       !this.ampVariableSubstitutionWhitelist_.includes(varName)) {
-      this.replacements_.delete(varName);
       return this;
     }
+
     this.replacements_[varName] =
         this.replacements_[varName] || {sync: undefined, async: undefined};
     this.replacements_[varName].sync = syncResolver;
@@ -194,7 +194,6 @@ export class VariableSource {
     dev().assert(varName.indexOf('RETURN') == -1);
     if (this.ampVariableSubstitutionWhitelist_ &&
       !this.ampVariableSubstitutionWhitelist_.includes(varName)) {
-      this.replacements_.delete(varName);
       return this;
     }
     this.replacements_[varName] =
@@ -259,6 +258,11 @@ export class VariableSource {
    * @private
    */
   buildExpr_(keys, isV2) {
+    // If a whitelist is provided, the keys must all belong to the whitelist.
+    if (this.ampVariableSubstitutionWhitelist_) {
+      keys = keys.filter(key =>
+        this.ampVariableSubstitutionWhitelist_.includes(key));
+    }
     // The keys must be sorted to ensure that the longest keys are considered
     // first. This avoids a problem where a RANDOM conflicts with RANDOM_ONE.
     keys.sort((s1, s2) => s2.length - s1.length);
