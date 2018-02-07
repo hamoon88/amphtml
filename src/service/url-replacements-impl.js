@@ -71,25 +71,6 @@ export class GlobalVariableSource extends VariableSource {
 
   constructor(ampdoc) {
     super(ampdoc);
-<<<<<<< HEAD
-
-    // A meta[name="amp-action-whitelist"] tag, if present, contains,
-    // in its content attribute, a whitelist of actions on the special AMP target.
-    if (this.ampVariableSubstitutionWhitelist_ === undefined
-      && this.ampdoc.getRootNode() && this.ampdoc.getRootNode().head) {
-      const meta =
-        this.ampdoc.getRootNode().head
-            .querySelector('meta[name="amp-variable-substitution-whitelist"]');
-
-      // Cache the whitelist of allowed AMP actions (if provided).
-      if (meta) {
-        this.ampVariableSubstitutionWhitelist_ =
-          meta.getAttribute('content').split(',')
-              .map(action => action.trim());
-      }
-    }
-=======
->>>>>>> the code for whitelist of variables in url substitution. The code does not contain functional testing
 
     /**
      * @private
