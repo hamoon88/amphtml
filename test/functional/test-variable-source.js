@@ -84,6 +84,39 @@ describe('VariableSource', () => {
     });
   });
 
+  describes.fakeWin('#whitelist', {
+    amp: {
+      ampdoc: 'single',
+    },
+  }, env => {
+    let variableSource;
+    beforeEach(() => {
+      const fakeMeta = {
+        getAttribute: () => 'ABC,ABCD,CANONICAL',
+      };
+      sandbox.stub(env.win.document.head,
+          'querySelector').callsFake(() => fakeMeta);
+      variableSource = new VariableSource(env.ampdoc);
+    });
+
+    it('Works with whitelisted variables', () => {
+      variableSource.setAsync('ABCD', () => Promise.resolve('abcd'));
+      expect(variableSource.getExpr()).to.be.ok;
+
+      return variableSource.get('ABCD')['async']().then(value => {
+        expect(value).to.equal('abcd');
+      });
+    });
+
+    it('Should not work with unwhitelisted variables', () => {
+      variableSource.setAsync('RANDOM', () => Promise.resolve('0.1234'));
+      expect(variableSource.getExpr()).to.be.ok;
+
+      expect(variableSource.get('RANDOM')).to.be.undefined;
+    });
+
+  });
+
   describes.fakeWin('getTimingData', {}, env => {
     let win;
 
