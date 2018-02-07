@@ -175,7 +175,8 @@ export class VariableSource {
       return this;
     }
 
-    this.replacements_[varName] || {sync: undefined, async: undefined};
+    this.replacements_[varName] =
+        this.replacements_[varName] || {sync: undefined, async: undefined};
     this.replacements_[varName].sync = syncResolver;
     this.replacementExpr_ = undefined;
     this.replacementExprV2_ = undefined;
@@ -196,7 +197,6 @@ export class VariableSource {
     dev().assert(varName.indexOf('RETURN') == -1);
     if (this.ampVariableSubstitutionWhitelist_ &&
       !this.ampVariableSubstitutionWhitelist_.includes(varName)) {
-      this.replacements_.delete(varName);
       return this;
     }
     this.replacements_[varName] =
