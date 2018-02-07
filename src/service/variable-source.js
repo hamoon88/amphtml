@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 The AMP HTML Authors. All Rights Reserved.
+ * Copyright 2016 The AMP HTML Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,107 +13,301 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {dev} from '../log';
+import {isFiniteNumber} from '../types';
+import {loadPromise} from '../event-helper';
 
-import {
-  VariableSource,
-  getTimingDataAsync,
-} from '../../src/service/variable-source';
+/** @typedef {string|number|boolean|undefined|null} */
+let ResolverReturnDef;
+
+/** @typedef {function(...*):ResolverReturnDef} */
+export let SyncResolverDef;
+
+/** @typedef {function(...*):!Promise<ResolverReturnDef>} */
+let AsyncResolverDef;
+
+/** @typedef {{sync: SyncResolverDef, async: AsyncResolverDef}} */
+let ReplacementDef;
 
 
-describe('VariableSource', () => {
-  let varSource;
-  beforeEach(() => {
-    varSource = new VariableSource();
-  });
-
-  it('Works without any variables', () => {
-    expect(varSource.getExpr()).to.be.ok;
-    expect(varSource.get('')).to.be.undefined;
-  });
-
-  it('Works with sync variables', () => {
-    varSource.set('Foo', () => 'bar');
-    expect(varSource.getExpr()).to.be.ok;
-    expect(varSource.get('Foo')['sync']()).to.equal('bar');
-    expect(varSource.get('foo')).to.be.undefined;
-    expect(varSource.get('AFoo')).to.be.undefined;
-  });
-
-  it('Works with async variables', () => {
-    varSource.setAsync('Foo', () => Promise.resolve('bar'));
-    expect(varSource.getExpr()).to.be.ok;
-
-    return varSource.get('Foo')['async']().then(value => {
-      expect(value).to.equal('bar');
+/**
+ * Returns navigation timing information based on the start and end events.
+ * The data for the timing events is retrieved from performance.timing API.
+ * If start and end events are both given, the result is the difference between
+ * the two. If only start event is given, the result is the timing value at
+ * start event.
+ * @param {!Window} win
+ * @param {string} startEvent
+ * @param {string=} endEvent
+ * @return {!Promise<ResolverReturnDef>}
+ */
+export function getTimingDataAsync(win, startEvent, endEvent) {
+  const metric = getTimingDataSync(win, startEvent, endEvent);
+  if (metric === '') {
+    // Metric is not yet available. Retry after a delay.
+    return loadPromise(win).then(() => {
+      return getTimingDataSync(win, startEvent, endEvent);
     });
-  });
+  }
+  return Promise.resolve(metric);
+}
 
-  it('Works with both sync and async variables', () => {
-    varSource.setBoth('Foo', () => 'bar', () => Promise.resolve('bar'));
-    expect(varSource.getExpr()).to.be.ok;
+/**
+ * Returns navigation timing information based on the start and end events.
+ * The data for the timing events is retrieved from performance.timing API.
+ * If start and end events are both given, the result is the difference between
+ * the two. If only start event is given, the result is the timing value at
+ * start event. Enforces synchronous evaluation.
+ * @param {!Window} win
+ * @param {string} startEvent
+ * @param {string=} endEvent
+ * @return {ResolverReturnDef} undefined if API is not available, empty string
+ *    if it is not yet available, or value as string
+ */
+export function getTimingDataSync(win, startEvent, endEvent) {
+  const timingInfo = win['performance'] && win['performance']['timing'];
+  if (!timingInfo || timingInfo['navigationStart'] == 0) {
+    // Navigation timing API is not supported.
+    return;
+  }
 
-    expect(varSource.get('Foo')['sync']()).to.equal('bar');
-    return varSource.get('Foo')['async']().then(value => {
-      expect(value).to.equal('bar');
-    });
-  });
+  const metric = (endEvent === undefined)
+    ? timingInfo[startEvent]
+    : timingInfo[endEvent] - timingInfo[startEvent];
 
-  it('Works with multiple variables', () => {
-    varSource.setBoth('Foo', () => 'bar', () => Promise.resolve('bar'));
-    varSource.set('Baz', () => 'Foo');
-    expect(varSource.getExpr()).to.be.ok;
+  if (!isFiniteNumber(metric)) {
+    // The metric is not supported.
+    return;
+  } else if (metric < 0) {
+    return '';
+  } else {
+    return metric;
+  }
+}
 
-    expect(varSource.get('Foo')['sync']()).to.equal('bar');
-    expect(varSource.get('Baz')['sync']()).to.equal('Foo');
-    return varSource.get('Foo')['async']().then(value => {
-      expect(value).to.equal('bar');
-    });
-  });
+/**
+ * Returns navigation information from the current browsing context.
+ * @param {!Window} win
+ * @param {string} attribute
+ * @return {ResolverReturnDef}
+ * @private
+ */
+export function getNavigationData(win, attribute) {
+  const navigationInfo = win['performance'] &&
+    win['performance']['navigation'];
+  if (!navigationInfo || navigationInfo[attribute] === undefined) {
+    // PerformanceNavigation interface is not supported or attribute is not
+    // implemented.
+    return;
+  }
+  return navigationInfo[attribute];
+}
 
-  it('Works with sync variable that is set multiple times', () => {
-    varSource.set('Foo', () => 'bar').set('Foo', () => 'baz');
-    expect(varSource.getExpr()).to.be.ok;
-    expect(varSource.get('Foo')['sync']()).to.equal('baz');
-  });
 
-  it('Works with async variable that is set multiple times', () => {
-    varSource.setAsync('Foo', () => Promise.resolve('bar'))
-        .setAsync('Foo', () => Promise.resolve('baz'));
-    return varSource.get('Foo')['async']().then(value => {
-      expect(value).to.equal('baz');
-    });
-  });
+/**
+ * A class to provide variable substitution related features. Extend this class
+ * and override initialize() to add more supported variables.
+ */
+export class VariableSource {
+  constructor(ampdoc) {
+    /** @const {!./ampdoc-impl.AmpDoc} */
+    this.ampdoc = ampdoc;
 
-  describes.fakeWin('getTimingData', {}, env => {
-    let win;
+    /** @private {!RegExp|undefined} */
+    this.replacementExpr_ = undefined;
 
-    beforeEach(() => {
-      win = env.win;
-      win.performance = {
-        timing: {
-          navigationStart: 1,
-          loadEventStart: 0,
-        },
-      };
-    });
+    /** @private {!RegExp|undefined} */
+    this.replacementExprV2_ = undefined;
 
-    it('should resolve immediate when data is ready', () => {
-      win.performance.timing.loadEventStart = 12;
-      return getTimingDataAsync(win, 'navigationStart', 'loadEventStart')
-          .then(value => {
-            expect(value).to.equal(11);
-          });
-    });
+    /** @private @const {!Object<string, !ReplacementDef>} */
+    this.replacements_ = Object.create(null);
 
-    it('should wait for load event', () => {
-      win.readyState = 'other';
-      const p = getTimingDataAsync(win, 'navigationStart', 'loadEventStart');
-      expect(win.eventListeners.count('load')).to.equal(1);
-      win.performance.timing.loadEventStart = 12;
-      win.eventListeners.fire({type: 'load'});
-      return p.then(value => {
-        expect(value).to.equal(11);
+    /** @private {boolean} */
+    this.initialized_ = false;
+
+    /** @const @private {?Array<string>} */
+    this.ampVariableSubstitutionWhitelist_ = this.createWhitelist_();
+  }
+
+  /**
+   * Lazily initialize the default replacements.
+   * @private
+   */
+  initialize_() {
+    this.initialize();
+    this.initialized_ = true;
+  }
+
+  /**
+   * Override this method to set all the variables supported by derived class.
+   */
+  initialize() {
+    // Needs to be implemented by derived classes.
+  }
+
+  /**
+   * Method exists to assist stubbing in tests.
+   * @param {string} name
+   * @return {!ReplacementDef}
+   */
+  get(name) {
+    if (!this.initialized_) {
+      this.initialize_();
+    }
+
+    return this.replacements_[name];
+  }
+
+  /**
+   * Sets a synchronous value resolver for the variable with the specified name.
+   * The value resolver may optionally take an extra parameter.
+   * Can be called in conjunction with setAsync to allow for additional
+   * asynchronous resolver where expand will use async and expandSync the sync
+   * version.
+   * @param {string} varName
+   * @param {!SyncResolverDef} syncResolver
+   * @return {!VariableSource}
+   */
+  set(varName, syncResolver) {
+    dev().assert(varName.indexOf('RETURN') == -1);
+    if (this.ampVariableSubstitutionWhitelist_ &&
+      !this.ampVariableSubstitutionWhitelist_.includes(varName)) {
+      return this;
+    }
+
+    this.replacements_[varName] =
+        this.replacements_[varName] || {sync: undefined, async: undefined};
+    this.replacements_[varName].sync = syncResolver;
+    this.replacementExpr_ = undefined;
+    this.replacementExprV2_ = undefined;
+    return this;
+  }
+
+  /**
+   * Sets an async value resolver for the variable with the specified name.
+   * The value resolver may optionally take an extra parameter.
+   * Can be called in conjuction with setAsync to allow for additional
+   * asynchronous resolver where expand will use async and expandSync the sync
+   * version.
+   * @param {string} varName
+   * @param {!AsyncResolverDef} asyncResolver
+   * @return {!VariableSource}
+   */
+  setAsync(varName, asyncResolver) {
+    dev().assert(varName.indexOf('RETURN') == -1);
+    if (this.ampVariableSubstitutionWhitelist_ &&
+      !this.ampVariableSubstitutionWhitelist_.includes(varName)) {
+      return this;
+    }
+    this.replacements_[varName] =
+        this.replacements_[varName] || {sync: undefined, async: undefined};
+    this.replacements_[varName].async = asyncResolver;
+    this.replacementExpr_ = undefined;
+    this.replacementExprV2_ = undefined;
+    return this;
+  }
+
+  /**
+   * Helper method to set both sync and async resolvers.
+   * @param {string} varName
+   * @param {!SyncResolverDef} syncResolver
+   * @param {!AsyncResolverDef} asyncResolver
+   * @return {!VariableSource}
+   */
+  setBoth(varName, syncResolver, asyncResolver) {
+    return this.set(varName, syncResolver).setAsync(varName, asyncResolver);
+  }
+
+  /**
+   * Returns a Regular expression that can be used to detect all the variables
+   * in a template.
+   * @param {!Object<string, *>=} opt_bindings
+   * @param {boolean=} isV2 flag to ignore capture of args
+   */
+  getExpr(opt_bindings, isV2) {
+    if (!this.initialized_) {
+      this.initialize_();
+    }
+
+    const additionalKeys = opt_bindings ? Object.keys(opt_bindings) : null;
+    if (additionalKeys && additionalKeys.length > 0) {
+      const allKeys = Object.keys(this.replacements_);
+      additionalKeys.forEach(key => {
+        if (this.replacements_[key] === undefined) {
+          allKeys.push(key);
+        }
       });
-    });
-  });
-});
+      return this.buildExpr_(allKeys, isV2);
+    }
+    if (!this.replacementExpr_ && !isV2) {
+      this.replacementExpr_ = this.buildExpr_(
+          Object.keys(this.replacements_));
+    }
+    // sometimes the v1 expand will be called before the v2
+    // so we need to cache both versions
+    if (!this.replacementExprV2_ && isV2) {
+      this.replacementExprV2_ = this.buildExpr_(
+          Object.keys(this.replacements_), isV2);
+    }
+
+    return isV2 ? this.replacementExprV2_ :
+      this.replacementExpr_;
+  }
+
+  /**
+   * @param {!Array<string>} keys
+   * @param {boolean=} isV2 flag to ignore capture of args
+   * @return {!RegExp}
+   * @private
+   */
+  buildExpr_(keys, isV2) {
+    // If a whitelist is provided, the keys must all belong to the whitelist.
+    if (this.ampVariableSubstitutionWhitelist_) {
+      keys = keys.filter(key =>
+        this.ampVariableSubstitutionWhitelist_.includes(key));
+    }
+    // The keys must be sorted to ensure that the longest keys are considered
+    // first. This avoids a problem where a RANDOM conflicts with RANDOM_ONE.
+    keys.sort((s1, s2) => s2.length - s1.length);
+    const all = keys.join('|');
+    // Match the given replacement patterns, as well as optionally
+    // arguments to the replacement behind it in parentheses.
+    // Example string that match
+    // FOO_BAR
+    // FOO_BAR(arg1)
+    // FOO_BAR(arg1,arg2)
+    // FOO_BAR(arg1, arg2)
+    let regexStr = '\\$?(' + all + ')';
+    // ignore the capturing of arguments in new parser
+    if (!isV2) {
+      regexStr += '(?:\\(((?:\\s*[0-9a-zA-Z-_.]*\\s*(?=,|\\)),?)*)\\s*\\))?';
+    }
+    return new RegExp(regexStr, 'g');
+  }
+
+  /**
+   * @return {?Array<string>} the whitelist of allowed AMP variables
+   * (if provided in a meta tag).
+   * @private
+   */
+  createWhitelist_() {
+    if(!this.ampdoc){
+      return null;
+    }
+
+    const head = this.ampdoc.getRootNode().head;
+    if (head) {
+      // A meta[name="amp-variable-substitution-whitelist"] tag, if present, 
+      // contains, in its content attribute, a whitelist of variable
+      // substitution.
+      const meta =
+        head.querySelector('meta[name="amp-variable-substitution-whitelist"]');
+
+      if (meta) {
+        return meta.getAttribute('content').split(',')
+            .map(variable => variable.trim());
+      }
+    }
+    return null;
+  }
+}
