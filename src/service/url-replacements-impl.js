@@ -68,7 +68,9 @@ function encodeValue(val) {
  * Class to provide variables that pertain to top level AMP window.
  */
 export class GlobalVariableSource extends VariableSource {
-
+  /**
+   * @param {?./ampdoc-impl.AmpDoc} ampdoc
+   */
   constructor(ampdoc) {
     super(ampdoc);
 
