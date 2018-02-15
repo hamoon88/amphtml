@@ -113,7 +113,7 @@ export class VariableSource {
    * @param {!./ampdoc-impl.AmpDoc} ampdoc
    */
   constructor(ampdoc) {
-    /** @protected @const {?./ampdoc-impl.AmpDoc} */
+    /** @protected @const {!./ampdoc-impl.AmpDoc} */
     this.ampdoc = ampdoc;
 
     /** @private {!RegExp|undefined} */
@@ -128,14 +128,16 @@ export class VariableSource {
     /** @private {boolean} */
     this.initialized_ = false;
 
-    // The whitelist of variables allowed for variable substitution.
-    /** @const @private {?Array<string>} */
+    /** 
+     * The whitelist of variables allowed for variable substitution.
+     * @private @const {?Array<string>} 
+     */
     this.whitelist_ = this.getVariableWhitelist_();
   }
 
   /**
    * @return {?Array<string>} The whitelist of allowed AMP variables. (if provided in 
-         a meta tag).
+   *     a meta tag).
    * @private
    */
   getVariableWhitelist_() {
@@ -153,8 +155,7 @@ export class VariableSource {
     }
 
     // A meta[name="amp-variable-substitution-whitelist"] tag, if present, 
-    // contains, in its content attribute, a whitelist of variable
-    // substitution.
+    // contains, in its content attribute, a whitelist of variable substitution.
     const meta =
       head.querySelector('meta[name="amp-variable-substitution-whitelist"]');
     if (!meta) {
@@ -207,7 +208,7 @@ export class VariableSource {
    */
   set(varName, syncResolver) {
     dev().assert(varName.indexOf('RETURN') == -1);
-    if (this.isWhitelisted_(varName)) {
+    if (!this.isWhitelisted_(varName)) {
       return this;
     }
 
@@ -231,7 +232,7 @@ export class VariableSource {
    */
   setAsync(varName, asyncResolver) {
     dev().assert(varName.indexOf('RETURN') == -1);
-    if (this.isWhitelisted_(varName)) {
+    if (!this.isWhitelisted_(varName)) {
       return this;
     }
     this.replacements_[varName] =
@@ -296,10 +297,11 @@ export class VariableSource {
    * @private
    */
   buildExpr_(keys, isV2) {
-    // If a whitelist is provided, the keys must all belong to the whitelist.
+    // If a whitelist is present, the keys must belong to the whitelist.
+    // We filter the keys one last time to ensure no unwhitelisted key is 
+    // allowed.
     if (this.getVariableWhitelist_()) {
-      keys = keys.filter(key =>
-        this.getVariableWhitelist_().includes(key));
+      keys = keys.filter(key => this.getVariableWhitelist_().includes(key));
     }
     // The keys must be sorted to ensure that the longest keys are considered
     // first. This avoids a problem where a RANDOM conflicts with RANDOM_ONE.
@@ -321,13 +323,14 @@ export class VariableSource {
   }
 
   /**
+   * Returns `true` if a variable whitelist is *not* present or the present
+   * whitelist contains the given variable name.
    * @param {string} varName
-   * @return {boolean} If a whitelist is provided and 
-         it contains the variable name returns true.
+   * @return {boolean} 
    * @private
    */
   isWhitelisted_(varName) {
-    return this.getVariableWhitelist_() &&
-      !this.getVariableWhitelist_().includes(varName);
+    return !this.getVariableWhitelist_() ||
+      this.getVariableWhitelist_().includes(varName);
   }
 }

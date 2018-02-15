@@ -88,7 +88,7 @@ describes.realWin('Expander', {
     });
   });
 
-  describe('#whitelist', () => {
+  describe('Whitelist of variables', () => {
     let variableSource;
     let expander;
 
@@ -98,11 +98,11 @@ describes.realWin('Expander', {
       ABCD: () => 'four',
     };
     beforeEach(() => {
-      const fakeMeta = {
-        getAttribute: () => 'ABC,ABCD,CANONICAL',
-      };
-      sandbox.stub(env.win.document.head,
-          'querySelector').callsFake(() => fakeMeta);
+      env.win.document.head.appendChild(
+        createElementWithAttributes(env.win.document, 'meta', {
+          name: 'amp-variable-substitution-whitelist',
+          content: 'ABC,ABCD,CANONICAL',
+        }));
       
       variableSource = new GlobalVariableSource(env.ampdoc);
       expander = new Expander(variableSource);

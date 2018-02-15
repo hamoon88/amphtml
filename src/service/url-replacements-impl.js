@@ -69,7 +69,7 @@ function encodeValue(val) {
  */
 export class GlobalVariableSource extends VariableSource {
   /**
-   * @param {?./ampdoc-impl.AmpDoc} ampdoc
+   * @param {!./ampdoc-impl.AmpDoc} ampdoc
    */
   constructor(ampdoc) {
     super(ampdoc);

@@ -22,10 +22,14 @@ import {
 import {createElementWithAttributes} from '../../src/dom';
 
 
-describe('VariableSource', () => {
+describes.fakeWin('VariableSource', {
+    amp: {
+      ampdoc: 'single',
+    },
+}, env => {
   let varSource;
   beforeEach(() => {
-    varSource = new VariableSource();
+    varSource = new VariableSource(env.ampdoc);
   });
 
   it('Works without any variables', () => {
