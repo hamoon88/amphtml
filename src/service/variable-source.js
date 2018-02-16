@@ -110,10 +110,10 @@ export function getNavigationData(win, attribute) {
  */
 export class VariableSource {
   /**
-   * @param {!./ampdoc-impl.AmpDoc} ampdoc
+   * @param {?./ampdoc-impl.AmpDoc} ampdoc
    */
   constructor(ampdoc) {
-    /** @protected @const {!./ampdoc-impl.AmpDoc} */
+    /** @protected @const {?./ampdoc-impl.AmpDoc} */
     this.ampdoc = ampdoc;
 
     /** @private {!RegExp|undefined} */
@@ -132,7 +132,7 @@ export class VariableSource {
      * The whitelist of variables allowed for variable substitution.
      * @private @const {?Array<string>} 
      */
-    this.whitelist_ = this.getVariableWhitelist_();
+    this.variableWhitelist_ = this.getVariableWhitelist_();
   }
 
   /**
@@ -141,10 +141,13 @@ export class VariableSource {
    * @private
    */
   getVariableWhitelist_() {
-    if (this.whitelist_) {
-      return this.whitelist_;
+    if (this.variableWhitelist_) {
+      return this.variableWhitelist_;
     }
 
+    // TODO(hamousavi): Remove this conditional and change the type annotation 
+    // for this.ampdoc to non-nullable. This is a temporary measures because
+    // tests currently do not respect the non-nullability measure. 
     if (!this.ampdoc) {
       return null;
     }
@@ -162,9 +165,9 @@ export class VariableSource {
       return null;
     }
 
-    this.whitelist_ = meta.getAttribute('content').split(',')
+    this.variableWhitelist_ = meta.getAttribute('content').split(',')
         .map(variable => variable.trim());
-    return this.whitelist_;
+    return this.variableWhitelist_;
   }
 
   /**
