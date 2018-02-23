@@ -70,9 +70,7 @@ function encodeValue(val) {
 export class GlobalVariableSource extends VariableSource {
 
   constructor(ampdoc) {
-    super();
-    /** @const {!./ampdoc-impl.AmpDoc} */
-    this.ampdoc = ampdoc;
+    super(ampdoc);
 
     /**
      * @private
